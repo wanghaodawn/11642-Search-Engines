@@ -60,6 +60,10 @@ public class QryEval {
   private static final String[] TEXT_FIELDS =
     { "body", "title", "url", "inlink" };
 
+  private static final String[] requiredParameters = {
+    "indexPath", "retrievalAlgorithm", "queryFilePath", "trecEvalOutputPath"
+  };
+
 
   //  --------------- Methods ---------------------------------------
 
@@ -84,21 +88,35 @@ public class QryEval {
     if (args.length < 1) {
       throw new IllegalArgumentException (USAGE);
     }
+
     // Read parameterFile
-    File inFile = newFile(args[0]);
+    Map<String, String> parameters = new HashMap<String, String>();
+    File inFile = new File(args[0]);
     BufferedReader br = null;
-    StringBuilder sb = new StringBuilder();
     try {
-      // Read string from the input file
+      // Read string from the input file line by line
       String sCurrentLine;
       br = new BufferedReader(new FileReader(inFile));
 
       while ((sCurrentLine = br.readLine()) != null) {
-        //System.out.println(sCurrentLine);
-        sb.append(sCurrentLine);
+        // System.out.println(sCurrentLine);
+        sCurrentLine = sCurrentLine.trim();
+        String[] line_array = sCurrentLine.split("=");
+
+        // Invalid line
+        if (line_array.length != 2) {
+          continue;
+        }
+
+        // Duplicate lines saying the same thing
+        if (parameters.containsKey(line_array[0])) {
+          continue;
+        }
+        parameters.put(line_array[0], line_array[1]);
       }
 
-      Map<String, String> parameters = readParameterFile (args[0]);
+      // Check whether the input is legal
+      isValidParameterFile(parameters);
 
       // Configure query lexical processing to match index lexical
       // processing.  Initialize the index and retrieval model.
@@ -124,6 +142,31 @@ public class QryEval {
       e.printStackTrace();
     }
   }
+
+
+  /**
+   * Judge whether a required item in parameterFile.txt is missing
+   */
+  public static void isValidParameterFile(Map<String, String> map) {
+    
+    if (map == null || map.size() < 1) {
+      System.err.println("Error: No Parameters Obtained in parameterFile.txt!!!");
+      System.exit(-1);
+    }
+
+    if (map.size() != 4) {
+      System.err.println("Error: Missing Parameters in parameterFile.txt!!!");
+      System.exit(-1);
+    }
+
+    for (int i = 0; i < requiredParameters.length; i++) {
+      if (!map.containsKey(requiredParameters[i])) {
+        System.err.println("Error: Missing " + requiredParameters[i] + " in parameterFile.txt!!!");
+        System.exit(-1);
+      }
+    }
+  }
+
 
   /**
    * Allocate the retrieval model and initialize it using parameters
@@ -305,7 +348,6 @@ public class QryEval {
 	}
       }
     }
-
 
     //  A broken structured query can leave unprocessed tokens on the opStack,
 
