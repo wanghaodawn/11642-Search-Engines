@@ -84,27 +84,45 @@ public class QryEval {
     if (args.length < 1) {
       throw new IllegalArgumentException (USAGE);
     }
+    // Read parameterFile
+    File inFile = newFile(args[0]);
+    BufferedReader br = null;
+    StringBuilder sb = new StringBuilder();
+    try {
+      // Read string from the input file
+      String sCurrentLine;
+      br = new BufferedReader(new FileReader(inFile));
 
-    Map<String, String> parameters = readParameterFile (args[0]);
+      while ((sCurrentLine = br.readLine()) != null) {
+        //System.out.println(sCurrentLine);
+        sb.append(sCurrentLine);
+      }
 
-    //  Configure query lexical processing to match index lexical
-    //  processing.  Initialize the index and retrieval model.
+      Map<String, String> parameters = readParameterFile (args[0]);
 
-    ANALYZER.setLowercase(true);
-    ANALYZER.setStopwordRemoval(true);
-    ANALYZER.setStemmer(EnglishAnalyzerConfigurable.StemmerType.KSTEM);
+      // Configure query lexical processing to match index lexical
+      // processing.  Initialize the index and retrieval model.
 
-    Idx.initialize (parameters.get ("indexPath"));
-    RetrievalModel model = initializeRetrievalModel (parameters);
+      ANALYZER.setLowercase(true);
+      ANALYZER.setStopwordRemoval(true);
+      ANALYZER.setStemmer(EnglishAnalyzerConfigurable.StemmerType.KSTEM);
 
-    //  Perform experiments.
-    
-    processQueryFile(parameters.get("queryFilePath"), model);
+      Idx.initialize (parameters.get ("indexPath"));
+      RetrievalModel model = initializeRetrievalModel (parameters);
 
-    //  Clean up.
-    
-    timer.stop ();
-    System.out.println ("Time:  " + timer);
+      // Perform experiments.
+      
+      processQueryFile(parameters.get("queryFilePath"), model);
+
+      // Clean up.
+      timer.stop ();
+      System.out.println ("Time:  " + timer);
+
+    // Throws exception if no file is found
+    } catch (IOException e) {
+      // Throws exception
+      e.printStackTrace();
+    }
   }
 
   /**
