@@ -5,7 +5,7 @@
 import java.io.*;
 
 /**
- *  The OR operator for all retrieval models.
+ *  The And operator for all retrieval models.
  */
 public class QrySopAnd extends QrySop {
 
@@ -15,7 +15,7 @@ public class QrySopAnd extends QrySop {
    *  @return True if the query matches, otherwise false.
    */
   public boolean docIteratorHasMatch (RetrievalModel r) {
-    return this.docIteratorHasMatchMin (r);
+    return this.docIteratorHasMatchAll(r);
   }
 
   /**
@@ -32,7 +32,7 @@ public class QrySopAnd extends QrySop {
       return this.getScoreRankedBoolean(r);
     } else {
       throw new IllegalArgumentException
-        (r.getClass().getName() + " doesn't support the OR operator.");
+        (r.getClass().getName() + " doesn't support the AND operator.");
     }
   }
   
@@ -57,11 +57,12 @@ public class QrySopAnd extends QrySop {
    *  @throws IOException Error accessing the Lucene index
    */
   private double getScoreRankedBoolean (RetrievalModel r) throws IOException {
-    if (! this.docIteratorHasMatchCache()) {
-      return 0.0;
-    } else {
-      return 1.0;
+    double min_score = Integer.MAX_VALUE;
+    for (int i = 0; i < this.args.size(); i++) {
+      QrySopScore qss = (QrySopScore) args.get(i);
+      min_score = Math.min(min_score, qss.getScore(r));
     }
+    return min_score;
   }
 
 }

@@ -23,10 +23,10 @@ public class ScoreList {
       this.score = score;
 
       try {
-	this.externalId = Idx.getExternalDocid (this.docid);
+	      this.externalId = Idx.getExternalDocid (this.docid);
       }
       catch (IOException ex){
-	ex.printStackTrace();
+	      ex.printStackTrace();
       }
     }
   }
@@ -53,6 +53,16 @@ public class ScoreList {
   public int getDocid(int n) {
     return this.scores.get(n).docid;
   }
+
+  /**
+   *  Get the external docid of the n'th entry.
+   *  @param n The index of the requested document.
+   *  @return The internal document id.
+   */
+  public String getExternalDocid(int n) {
+    return this.scores.get(n).externalId;
+  }
+
 
   /**
    *  Get the score of the n'th entry.

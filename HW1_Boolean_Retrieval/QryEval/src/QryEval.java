@@ -64,6 +64,8 @@ public class QryEval {
     "indexPath", "retrievalAlgorithm", "queryFilePath", "trecEvalOutputPath"
   };
 
+  private static Map<String, String> parameters = new HashMap<String, String>();
+
 
   //  --------------- Methods ---------------------------------------
 
@@ -90,7 +92,6 @@ public class QryEval {
     }
 
     // Read parameterFile
-    Map<String, String> parameters = new HashMap<String, String>();
     File inFile = new File(args[0]);
     BufferedReader br = null;
     try {
@@ -313,6 +314,11 @@ public class QryEval {
         currentOp = new QryIopSyn();
         currentOp.setDisplayName(token);
         opStack.push(currentOp);
+      } else if (token.length() >= 7 && token.substring(0, 6).equalsIgnoreCase("#near/")) {
+        int dis = Integer.parseInt(token.substring(6));
+        currentOp = new QryIopNear(dis);
+        currentOp.setDisplayName(token);
+        opStack.push(currentOp);
       } else {
 
         //  Split the token into a term and a field.
@@ -372,13 +378,13 @@ public class QryEval {
    */
   public static void printMemoryUsage(boolean gc) {
 
-    Runtime runtime = Runtime.getRuntime();
+    // Runtime runtime = Runtime.getRuntime();
 
-    if (gc)
-      runtime.gc();
+    // if (gc)
+    //   runtime.gc();
 
-    System.out.println("Memory used:  "
-        + ((runtime.totalMemory() - runtime.freeMemory()) / (1024L * 1024L)) + " MB");
+    // System.out.println("Memory used:  "
+    //     + ((runtime.totalMemory() - runtime.freeMemory()) / (1024L * 1024L)) + " MB");
   }
 
   /**
@@ -426,12 +432,23 @@ public class QryEval {
    * @throws IOException Error accessing the Lucene index.
    */
   static void processQueryFile(String queryFilePath,
-                               RetrievalModel model)
-      throws IOException {
-
+                               RetrievalModel model) throws IOException {
+    
     BufferedReader input = null;
 
     try {
+
+      // Get the output file path
+      File output_file = new File(parameters.get(requiredParameters[3]));
+
+      // If file doesnt exists, then create it
+      if (!output_file.exists()) {
+        output_file.createNewFile();
+      }
+
+      FileWriter fw = new FileWriter(output_file.getAbsoluteFile());
+      BufferedWriter bw = new BufferedWriter(fw);
+
       String qLine = null;
 
       input = new BufferedReader(new FileReader(queryFilePath));
@@ -458,10 +475,26 @@ public class QryEval {
         r = processQuery(query, model);
 
         if (r != null) {
-          printResults(qid, r);
-          System.out.println();
+          int len = r.size();
+          r.sort();
+
+          // printResults(qid, r);
+          // System.out.println();
+
+          for (int i = 0; i < 100 && i < len; i++) {
+            if (r.getDocidScore(i) <= 0 || r.getExternalDocid(i) == "") {
+              continue;
+            }
+            String tmp = qid + " " + "Q0 " + r.getExternalDocid(i) + " " + (i+1)
+                     + " " + r.getDocidScore(i) + " run-1\n";
+            bw.write(tmp);
+          }
+        } else {
+          String tmp = "10 Q0 dummy 1 0 run-1";
+          bw.write(tmp);
         }
       }
+      bw.close();
     } catch (IOException ex) {
       ex.printStackTrace();
     } finally {
@@ -485,15 +518,15 @@ public class QryEval {
    */
   static void printResults(String queryName, ScoreList result) throws IOException {
 
-    System.out.println(queryName + ":  ");
-    if (result.size() < 1) {
-      System.out.println("\tNo results.");
-    } else {
-      for (int i = 0; i < result.size(); i++) {
-        System.out.println("\t" + i + ":  " + Idx.getExternalDocid(result.getDocid(i)) + ", "
-            + result.getDocidScore(i));
-      }
-    }
+    // System.out.println(queryName + ":  ");
+    // if (result.size() < 1) {
+    //   System.out.println("\tNo results.");
+    // } else {
+    //   for (int i = 0; i < result.size(); i++) {
+    //     System.out.println("\t" + i + ":  " + Idx.getExternalDocid(result.getDocid(i)) + ", "
+    //         + result.getDocidScore(i));
+    //   }
+    // }
   }
 
   /**

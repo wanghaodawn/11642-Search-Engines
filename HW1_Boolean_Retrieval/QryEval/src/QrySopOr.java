@@ -57,11 +57,12 @@ public class QrySopOr extends QrySop {
    *  @throws IOException Error accessing the Lucene index
    */
   private double getScoreRankedBoolean (RetrievalModel r) throws IOException {
-    if (! this.docIteratorHasMatchCache()) {
-      return 0.0;
-    } else {
-      return 1.0;
+    double max_score = -1.0;
+    for (int i = 0; i < this.args.size(); i++) {
+      QrySopScore qss = (QrySopScore) args.get(i);
+      max_score = Math.max(max_score, qss.getScore(r));
     }
+    return max_score;
   }
 
 }

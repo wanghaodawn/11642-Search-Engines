@@ -27,19 +27,16 @@ public class QryIopSyn extends QryIop {
 
     //  Each pass of the loop adds 1 document to result inverted list
     //  until all of the argument inverted lists are depleted.
-
     while (true) {
 
       //  Find the minimum next document id.  If there is none, we're done.
-
       int minDocid = Qry.INVALID_DOCID;
 
       for (Qry q_i: this.args) {
         if (q_i.docIteratorHasMatch (null)) {
           int q_iDocid = q_i.docIteratorGetMatch ();
           
-          if ((minDocid > q_iDocid) ||
-              (minDocid == Qry.INVALID_DOCID)) {
+          if ((minDocid > q_iDocid) || (minDocid == Qry.INVALID_DOCID)) {
             minDocid = q_iDocid;
           }
         }
@@ -58,10 +55,9 @@ public class QryIopSyn extends QryIop {
       for (Qry q_i: this.args) {
         if (q_i.docIteratorHasMatch (null) &&
             (q_i.docIteratorGetMatch () == minDocid)) {
-          Vector<Integer> locations_i =
-            ((QryIop) q_i).docIteratorGetMatchPosting().positions;
-	  positions.addAll (locations_i);
-          q_i.docIteratorAdvancePast (minDocid);
+              Vector<Integer> locations_i = ((QryIop) q_i).docIteratorGetMatchPosting().positions;
+	            positions.addAll (locations_i);
+              q_i.docIteratorAdvancePast (minDocid);
 	      }
       }
 

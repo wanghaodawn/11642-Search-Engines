@@ -258,7 +258,7 @@ public abstract class Qry {
       Qry q_0 = this.args.get (0);
 
       if (! q_0.docIteratorHasMatch (r)) {
-	return false;
+	      return false;
       }
 
       int docid_0 = q_0.docIteratorGetMatch ();
