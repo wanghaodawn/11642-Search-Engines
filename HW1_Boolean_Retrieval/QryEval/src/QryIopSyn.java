@@ -18,7 +18,6 @@ public class QryIopSyn extends QryIop {
 
     //  Create an empty inverted list.  If there are no query arguments,
     //  that's the final result.
-    
     this.invertedList = new InvList (this.getField());
 
     if (args.size () == 0) {
@@ -49,7 +48,6 @@ public class QryIopSyn extends QryIop {
       //  that match the minDocid.  Save it.
       //  Note:  This implementation assumes that a location will not appear
       //  in two or more arguments.  #SYN (apple apple) would break it.
-
       List<Integer> positions = new ArrayList<Integer>();
 
       for (Qry q_i: this.args) {

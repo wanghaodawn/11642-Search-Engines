@@ -490,6 +490,7 @@ public class QryEval {
             bw.write(tmp);
           }
         } else {
+          // If the input is null
           String tmp = "10 Q0 dummy 1 0 run-1";
           bw.write(tmp);
         }
