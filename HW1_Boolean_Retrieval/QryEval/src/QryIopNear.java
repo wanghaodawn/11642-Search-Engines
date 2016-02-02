@@ -46,7 +46,7 @@ public class QryIopNear extends QryIop {
     //  that's the final result.
     this.invertedList = new InvList (this.getField());
 
-    if (args.size () == 0) {
+    if (args.size () <= 1) {
       return;
     }
 

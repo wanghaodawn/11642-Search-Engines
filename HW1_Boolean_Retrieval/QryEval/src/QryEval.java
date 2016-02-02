@@ -482,11 +482,11 @@ public class QryEval {
           // System.out.println();
 
           for (int i = 0; i < 100 && i < len; i++) {
-            if (r.getDocidScore(i) <= 0 || r.getExternalDocid(i) == "") {
+            if (r.getScoreListEntry(i).docid <= 0 || r.getScoreListEntry(i).externalId == "") {
               continue;
             }
-            String tmp = qid + " " + "Q0 " + r.getExternalDocid(i) + " " + (i+1)
-                     + " " + r.getDocidScore(i) + " run-1\n";
+            String tmp = qid + " " + "Q0 " + r.getScoreListEntry(i).externalId + " " + (i+1)
+                     + " " + r.getScoreListEntry(i).score + " run-1\n";
             bw.write(tmp);
           }
         } else {

@@ -57,12 +57,16 @@ public class QrySopAnd extends QrySop {
    *  @throws IOException Error accessing the Lucene index
    */
   private double getScoreRankedBoolean (RetrievalModel r) throws IOException {
-    double min_score = Integer.MAX_VALUE;
-    for (int i = 0; i < this.args.size(); i++) {
-      QrySopScore qss = (QrySopScore) args.get(i);
-      min_score = Math.min(min_score, qss.getScore(r));
+    if (! this.docIteratorHasMatchCache()) {
+      return 0.0;
+    } else {
+      double min_score = Integer.MAX_VALUE;
+      for (int i = 0; i < this.args.size(); i++) {
+        QrySopScore qss = (QrySopScore) args.get(i);
+        min_score = Math.min(min_score, qss.getScore(r));
+      }
+      return min_score;
     }
-    return min_score;
   }
 
 }
