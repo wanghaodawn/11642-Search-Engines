@@ -7,7 +7,7 @@ import java.io.*;
 /**
  *  The OR operator for all retrieval models.
  */
-public class QrySopOr extends QrySop {
+public class QrySopAnd extends QrySop {
 
   /**
    *  Indicates whether the query has a match.

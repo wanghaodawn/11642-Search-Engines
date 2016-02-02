@@ -62,7 +62,7 @@ public class QryIopSyn extends QryIop {
             ((QryIop) q_i).docIteratorGetMatchPosting().positions;
 	  positions.addAll (locations_i);
           q_i.docIteratorAdvancePast (minDocid);
-	}
+	      }
       }
 
       Collections.sort (positions);

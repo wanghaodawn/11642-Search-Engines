@@ -33,7 +33,9 @@ public class QrySopScore extends QrySop {
   public double getScore (RetrievalModel r) throws IOException {
 
     if (r instanceof RetrievalModelUnrankedBoolean) {
-      return this.getScoreUnrankedBoolean (r);
+      return this.getScoreUnrankedBoolean(r);
+    } else if (r instanceof RetrievalModelRankedBoolean) {
+      return this.getScoreRankedBoolean(r);
     } else {
       throw new IllegalArgumentException
         (r.getClass().getName() + " doesn't support the SCORE operator.");
@@ -47,6 +49,20 @@ public class QrySopScore extends QrySop {
    *  @throws IOException Error accessing the Lucene index
    */
   public double getScoreUnrankedBoolean (RetrievalModel r) throws IOException {
+    if (! this.docIteratorHasMatchCache()) {
+      return 0.0;
+    } else {
+      return 1.0;
+    }
+  }
+
+  /**
+   *  getScore for the Ranked retrieval model.
+   *  @param r The retrieval model that determines how scores are calculated.
+   *  @return The document score.
+   *  @throws IOException Error accessing the Lucene index
+   */
+  public double getScoreRankedBoolean (RetrievalModel r) throws IOException {
     if (! this.docIteratorHasMatchCache()) {
       return 0.0;
     } else {

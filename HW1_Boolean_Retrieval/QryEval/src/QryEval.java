@@ -120,25 +120,23 @@ public class QryEval {
 
       // Configure query lexical processing to match index lexical
       // processing.  Initialize the index and retrieval model.
-
       ANALYZER.setLowercase(true);
       ANALYZER.setStopwordRemoval(true);
       ANALYZER.setStemmer(EnglishAnalyzerConfigurable.StemmerType.KSTEM);
 
-      Idx.initialize (parameters.get ("indexPath"));
+      Idx.initialize(parameters.get ("indexPath"));
       RetrievalModel model = initializeRetrievalModel (parameters);
 
-      // Perform experiments.
-      
+      // Perform experiments according to the given query file
       processQueryFile(parameters.get("queryFilePath"), model);
 
       // Clean up.
-      timer.stop ();
-      System.out.println ("Time:  " + timer);
+      timer.stop();
+      System.out.println("Time:  " + timer);
 
     // Throws exception if no file is found
     } catch (IOException e) {
-      // Throws exception
+      // Throws IOException
       e.printStackTrace();
     }
   }
@@ -182,8 +180,9 @@ public class QryEval {
 
     if (modelString.equals("unrankedboolean")) {
       model = new RetrievalModelUnrankedBoolean();
-    }
-    else {
+    } else if (modelString.equals("rankedboolean")) {
+      model = new RetrievalModelRankedBoolean();
+    } else {
       throw new IllegalArgumentException
         ("Unknown retrieval model " + parameters.get("retrievalAlgorithm"));
     }
@@ -256,7 +255,7 @@ public class QryEval {
     //  bit of inefficiency, but it allows other code to assume
     //  that the query will return document ids and scores.
 
-    String defaultOp = model.defaultQrySopName ();
+    String defaultOp = model.defaultQrySopName();
     qString = defaultOp + "(" + qString + ")";
 
     //  Simple query tokenization.  Terms like "near-death" are handled later.
@@ -294,21 +293,25 @@ public class QryEval {
         if (opStack.empty())
           break;
 
-	// Not done yet.  Add the current operator as an argument to
+	      // Not done yet.  Add the current operator as an argument to
         // the higher-level operator, and shift processing back to the
         // higher-level operator.
 
         Qry arg = currentOp;
         currentOp = opStack.peek();
-	currentOp.appendArg(arg);
+	      currentOp.appendArg(arg);
 
+      } else if (token.equalsIgnoreCase("#and")) {
+        currentOp = new QrySopAnd();
+        currentOp.setDisplayName(token);
+        opStack.push(currentOp);
       } else if (token.equalsIgnoreCase("#or")) {
-        currentOp = new QrySopOr ();
-        currentOp.setDisplayName (token);
+        currentOp = new QrySopOr();
+        currentOp.setDisplayName(token);
         opStack.push(currentOp);
       } else if (token.equalsIgnoreCase("#syn")) {
         currentOp = new QryIopSyn();
-        currentOp.setDisplayName (token);
+        currentOp.setDisplayName(token);
         opStack.push(currentOp);
       } else {
 
@@ -327,9 +330,9 @@ public class QryEval {
         }
 
         if ((field.compareTo("url") != 0) &&
-	    (field.compareTo("keywords") != 0) &&
-	    (field.compareTo("title") != 0) &&
-	    (field.compareTo("body") != 0) &&
+      	    (field.compareTo("keywords") != 0) &&
+      	    (field.compareTo("title") != 0) &&
+      	    (field.compareTo("body") != 0) &&
             (field.compareTo("inlink") != 0)) {
           throw new IllegalArgumentException ("Error: Unknown field " + token);
         }
@@ -344,8 +347,8 @@ public class QryEval {
 
           Qry termOp = new QryIopTerm(t [j], field);
 
-	  currentOp.appendArg (termOp);
-	}
+      	  currentOp.appendArg (termOp);
+      	}
       }
     }
 
