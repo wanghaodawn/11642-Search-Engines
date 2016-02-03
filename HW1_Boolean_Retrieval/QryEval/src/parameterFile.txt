@@ -1,4 +1,4 @@
 indexPath=../index
-retrievalAlgorithm=UnrankedBoolean
+retrievalAlgorithm=RankedBoolean
 queryFilePath=../query_sets/queriesOr.txt
 trecEvalOutputPath=HW1-queries-UB.teIn

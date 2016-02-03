@@ -148,16 +148,19 @@ public class QryEval {
    */
   public static void isValidParameterFile(Map<String, String> map) {
     
+    // No correct input
     if (map == null || map.size() < 1) {
-      System.err.println("Error: No Parameters Obtained in parameterFile.txt!!!");
+      System.out.println("Error: No Parameters Obtained in parameterFile.txt!!!");
       System.exit(-1);
     }
 
+    // Missing input arguments
     if (map.size() != 4) {
-      System.err.println("Error: Missing Parameters in parameterFile.txt!!!");
+      System.out.println("Error: Missing Parameters in parameterFile.txt!!!");
       System.exit(-1);
     }
 
+    // Missing input arguments
     for (int i = 0; i < requiredParameters.length; i++) {
       if (!map.containsKey(requiredParameters[i])) {
         System.err.println("Error: Missing " + requiredParameters[i] + " in parameterFile.txt!!!");
@@ -179,6 +182,7 @@ public class QryEval {
     RetrievalModel model = null;
     String modelString = parameters.get ("retrievalAlgorithm").toLowerCase();
 
+    // Get the type of model
     if (modelString.equals("unrankedboolean")) {
       model = new RetrievalModelUnrankedBoolean();
     } else if (modelString.equals("rankedboolean")) {
@@ -200,7 +204,6 @@ public class QryEval {
   static Qry optimizeQuery(Qry q) {
 
     //  Term operators don't benefit from optimization.
-
     if (q instanceof QryIopTerm) {
       return q;
     }
@@ -208,7 +211,6 @@ public class QryEval {
     //  Optimization is a depth-first task, so recurse on query
     //  arguments.  This is done in reverse to simplify deleting
     //  query arguments that become null.
-    
     for (int i = q.args.size() - 1; i >= 0; i--) {
 
       Qry q_i_before = q.args.get(i);
@@ -224,14 +226,12 @@ public class QryEval {
     }
 
     //  If the operator now has no arguments, it is deleted.
-
     if (q.args.size () == 0) {
       return null;
     }
 
     //  Only SCORE operators can have a single argument.  Other
     //  query operators that have just one argument are deleted.
-
     if ((q.args.size() == 1) &&
         (! (q instanceof QrySopScore))) {
       q = q.args.get (0);
@@ -474,6 +474,7 @@ public class QryEval {
         r = processQuery(query, model);
 
         if (r != null) {
+          // If there are input
           int len = r.size();
           r.sort();
 

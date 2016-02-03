@@ -32,6 +32,7 @@ public class QrySopScore extends QrySop {
    */
   public double getScore (RetrievalModel r) throws IOException {
 
+    // Get the type of retrieval model
     if (r instanceof RetrievalModelUnrankedBoolean) {
       return this.getScoreUnrankedBoolean(r);
     } else if (r instanceof RetrievalModelRankedBoolean) {

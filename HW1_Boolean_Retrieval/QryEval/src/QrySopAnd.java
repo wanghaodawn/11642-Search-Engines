@@ -60,10 +60,15 @@ public class QrySopAnd extends QrySop {
     if (! this.docIteratorHasMatchCache()) {
       return 0.0;
     } else {
-      double min_score = Integer.MAX_VALUE;
+      double min_score = Double.MAX_VALUE;
+      int docid = this.docIteratorGetMatch();
       for (int i = 0; i < this.args.size(); i++) {
-        QrySopScore qss = (QrySopScore) args.get(i);
-        min_score = Math.min(min_score, qss.getScore(r));
+        Qry q = this.args.get(i);
+        if(!q.docIteratorHasMatch(r) || docid != q.docIteratorGetMatch()){
+          return 0.0;
+        }
+        double score = ((QrySop) q).getScore(r);
+        min_score = Math.min(min_score, score);
       }
       return min_score;
     }
