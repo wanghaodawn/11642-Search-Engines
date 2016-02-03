@@ -58,11 +58,15 @@ public class QryIopNear extends QryIop {
       int minDocid = Integer.MAX_VALUE;
       boolean matchDoc = true;
 
-      for (int i = 0; i < this.args.size(); i++) {
-        if (this.getArg(i).docIteratorHasMatch(null)) {
-          int q_i_docid = this.getArg(i).docIteratorGetMatch();
+      // Create a new posting that is the union of the posting lists
+      // that match the minDocid.  Save it.
+      List<Integer> positions = new ArrayList<Integer>();
+
+      for (Qry q : this.args) {
+        if (q.docIteratorHasMatch(null)) {
+          int q_docid = q.docIteratorGetMatch();
           
-          minDocid = Math.min(minDocid, q_i_docid);
+          minDocid = Math.min(minDocid, q_docid);
         }
       }
 
@@ -70,86 +74,150 @@ public class QryIopNear extends QryIop {
       if (minDocid == Integer.MAX_VALUE) {
         break;
       }
-      
-      for (int i = 0; i < this.args.size(); i++) {
-        if (this.getArg(i).docIteratorHasMatch(null)) {
+
+      for (Qry q : this.args) {
+        if ((q.docIteratorHasMatch(null) && (q.docIteratorGetMatch() == minDocid))) {
           continue;
         }
-        if ((this.getArg(i).docIteratorGetMatch() == minDocid)) {
-          matchDoc = false;
-          break;
-        }
+        matchDoc = false;
       }
 
       if (!matchDoc) {
-        for (int i = 0; i < this.args.size(); i++) {
-          if (!this.getArg(i).docIteratorHasMatch(null)) {
+        for (Qry q : this.args) {
+          if (!q.docIteratorHasMatch(null) || !(q.docIteratorGetMatch() == minDocid)) {
             continue;
           }
-          if ((this.getArg(i).docIteratorGetMatch() == minDocid)) {
-            this.getArg(i).docIteratorAdvancePast(minDocid);
-          }
+          q.docIteratorAdvancePast(minDocid);
         }
         continue;
       }
 
-      //  Create a new posting that is the union of the posting lists
-      //  that match the minDocid.  Save it.
-      List<Integer> positions = new ArrayList<Integer>();
-
-      QryIop first = this.getArg(0);
-      for (int i = 1; i < this.args.size(); i++) {
-        this.getArg(i).locIteratorAdvancePast(first.locIteratorGetMatch());
+      QryIop first_q = this.getArg(0);
+      for (Qry q : this.args) {
+        QryIop query = (QryIop) q;
+        if (query == this.getArg(0)) {
+          continue;
+        }
+        query.locIteratorAdvancePast(first_q.locIteratorGetMatch());
       }
 
-      boolean flag = true;
-      QryIop min_qry = null;
-      int min_location = Integer.MAX_VALUE;
-      
-      while (flag) {
+      // find the matched location within distance
+      while (true) {
+        boolean locMatch = true;
+        int minLoc = Integer.MIN_VALUE;
+        QryIop minQuery = null;
 
+        // get min location and corresponding query argument
         for (int i = 0; i < this.args.size(); i++) {
-          if (!this.getArg(i).locIteratorHasMatch()) {
-            flag = false;
-            break;
-          }
-          min_location = Math.min(min_location, this.getArg(i).locIteratorGetMatch());
-          if (min_location == this.getArg(i).locIteratorGetMatch()) {
-            min_qry = this.getArg(i);
-          }
-        }
-
-        if (!flag) {
-          break;
-        }
-
-        int first_location = first.locIteratorGetMatch();
-        for (int i = 0; i < this.args.size(); i++) {
-          int pos_2 = this.getArg(i+1).locIteratorGetMatch();
-          int pos_1 = this.getArg(i).locIteratorGetMatch();
-          if (pos_1 < pos_2 - distance || pos_1 > pos_2) {
-            flag = false;
+          QryIop query = this.getArg(i);
+          if (query.locIteratorHasMatch()) {
+            int currLoc = query.locIteratorGetMatch();
+            if (currLoc < minLoc || minLoc == Integer.MIN_VALUE) {
+              minLoc = currLoc;
+              minQuery = query;
+            }
+          } else {
+            locMatch = false;
             break;
           }
         }
 
-        positions.add(first_location);
-        for (int i = 0; i < this.args.size(); i++) {
-          this.getArg(i).locIteratorAdvance();
+        if (!locMatch) break;
+
+        int firstLoc = first_q.locIteratorGetMatch();
+        int prevLoc = firstLoc;
+        QryIop prevQuery = null;
+
+        for (int i = 1; i < this.args.size(); i++) {
+          QryIop q_i = this.getArg(i);
+          prevQuery = this.getArg(i-1);
+          prevLoc = prevQuery.locIteratorGetMatch();
+
+          // find the iterator that exceeds range
+          if ((q_i.locIteratorGetMatch() < prevLoc) ||
+              (q_i.locIteratorGetMatch() > prevLoc + distance)) {
+            locMatch = false;
+            break;
+          }
+        }
+
+        // Advance min location and get next min location
+        if (!locMatch) {
+          minQuery.locIteratorAdvancePast(minLoc);
+        } else {
+          positions.add(firstLoc);
+          for (int i = 0; i < this.args.size(); i++) {
+            this.getArg(i).locIteratorAdvance();
+          }
         }
       }
 
-      if (!flag) {
-        min_qry.locIteratorAdvancePast(min_location);
-      }
-      if (positions.size() == 0) {
+      if (positions.size() > 0) {
         this.invertedList.appendPosting(minDocid, positions);
-        return;
       }
 
-      for (int i = 0; i < this.args.size(); i++) {
-        this.getArg(i).docIteratorAdvancePast(minDocid);
+      for (Qry q : this.args) {
+        QryIop query = (QryIop) q;
+        query.docIteratorAdvancePast(minDocid);
       }
+      
+
+      
+
+
+
+
+
+      
+      
+      
+
+      
+
+      
+
+      // boolean flag = true;
+      // QryIop min_qry = null;
+      // int min_location = Integer.MAX_VALUE;
+      // int first_location = first_q_i.locIteratorGetMatch();
+      
+      // while (flag) {
+
+      //   for (Qry q_i : this.args) {
+      //     QryIop query = (QryIop) q_i;
+      //     if (!query.locIteratorHasMatch()) {
+      //       flag = false;
+      //       break;
+      //     }
+      //     min_location = Math.min(min_location, query.locIteratorGetMatch());
+      //     if (min_location == query.locIteratorGetMatch()) {
+      //       min_qry = query;
+      //     }
+      //   }
+
+      //   if (!flag) {
+      //     break;
+      //   }
+
+      //   first_location = first_q_i.locIteratorGetMatch();
+      //   for (int i = 0; i < this.args.size()-1; i++) {
+      //     int pos_2 = this.getArg(i+1).locIteratorGetMatch();
+      //     int pos_1 = this.getArg(i).locIteratorGetMatch();
+
+      //     if (pos_1 < pos_2 - distance || pos_1 > pos_2) {
+      //       min_qry.locIteratorAdvancePast(min_location);
+      //       break;
+      //     }
+      //   }
+
+      //   positions.add(first_location);
+      //   for (Qry q_i : this.args) {
+      //     QryIop query = (QryIop) q_i;
+      //     query.locIteratorAdvance();
+      //   }
+      // }
+
+      
 
     }
   }
