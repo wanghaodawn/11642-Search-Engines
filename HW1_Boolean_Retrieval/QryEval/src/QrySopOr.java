@@ -62,8 +62,14 @@ public class QrySopOr extends QrySop {
     } else {
       double max_score = -1.0;
       for (int i = 0; i < this.args.size(); i++) {
-        QrySopScore qss = (QrySopScore) args.get(i);
-        max_score = Math.max(max_score, qss.getScore(r));
+        Qry q = this.args.get(i);
+        if (!q.docIteratorHasMatch(r)){
+          continue;
+        }
+        if (q.docIteratorGetMatch() == this.docIteratorGetMatch()) {
+          QrySopScore qss = (QrySopScore) args.get(i);
+          max_score = Math.max(max_score, qss.getScore(r));
+        }
       }
       return max_score;
     }

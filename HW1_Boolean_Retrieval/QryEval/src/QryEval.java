@@ -359,7 +359,6 @@ public class QryEval {
     }
 
     //  A broken structured query can leave unprocessed tokens on the opStack,
-
     if (tokens.hasMoreTokens()) {
       throw new IllegalArgumentException
         ("Error:  Query syntax is incorrect.  " + qString);
@@ -378,13 +377,13 @@ public class QryEval {
    */
   public static void printMemoryUsage(boolean gc) {
 
-    // Runtime runtime = Runtime.getRuntime();
+    Runtime runtime = Runtime.getRuntime();
 
-    // if (gc)
-    //   runtime.gc();
+    if (gc)
+      runtime.gc();
 
-    // System.out.println("Memory used:  "
-    //     + ((runtime.totalMemory() - runtime.freeMemory()) / (1024L * 1024L)) + " MB");
+    System.out.println("Memory used:  "
+        + ((runtime.totalMemory() - runtime.freeMemory()) / (1024L * 1024L)) + " MB");
   }
 
   /**
@@ -517,17 +516,17 @@ public class QryEval {
    *          A list of document ids and scores
    * @throws IOException Error accessing the Lucene index.
    */
-  static void printResults(String queryName, ScoreList result) throws IOException {
-
-    // System.out.println(queryName + ":  ");
-    // if (result.size() < 1) {
-    //   System.out.println("\tNo results.");
-    // } else {
-    //   for (int i = 0; i < result.size(); i++) {
-    //     System.out.println("\t" + i + ":  " + Idx.getExternalDocid(result.getDocid(i)) + ", "
-    //         + result.getDocidScore(i));
-    //   }
-    // }
+  static void printResults(String queryName, ScoreList result) 
+  throws IOException {
+    System.out.println(queryName + ":  ");
+    if (result.size() < 1) {
+      System.out.println("\tNo results.");
+    } else {
+      // for (int i = 0; i < result.size(); i++) {
+      //   System.out.println("\t" + i + ":  " + ", "
+      //       + result.getDocidScore(i));
+      // }
+    }
   }
 
   /**

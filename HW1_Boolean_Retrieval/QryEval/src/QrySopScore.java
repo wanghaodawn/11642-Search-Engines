@@ -65,8 +65,9 @@ public class QrySopScore extends QrySop {
   public double getScoreRankedBoolean (RetrievalModel r) throws IOException {
     if (! this.docIteratorHasMatchCache()) {
       return 0.0;
-    } 
-      return 1.0;
+    } else {
+      return this.getArg(0).docIteratorGetMatchPosting().tf;
+    }
   }
 
   /**
