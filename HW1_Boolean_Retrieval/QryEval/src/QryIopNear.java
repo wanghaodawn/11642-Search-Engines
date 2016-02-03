@@ -46,7 +46,6 @@ public class QryIopNear extends QryIop {
     //  that's the final result.
     this.invertedList = new InvList (this.getField());
 
-    // Invalid NEAR arguments
     if (args.size () <= 1) {
       return;
     }
@@ -56,8 +55,8 @@ public class QryIopNear extends QryIop {
     while (true) {
 
       // Define variables
-      int minDocid = Integer.MAX_VALUE;
       boolean matchDoc = true;
+      int minDocid = Integer.MAX_VALUE;
       int min_location = Integer.MAX_VALUE;
       QryIop min_qry = null;
       boolean flag = true;
@@ -76,100 +75,115 @@ public class QryIopNear extends QryIop {
         }
       }
 
-      // All docids have been processed.  Done.
-      if (minDocid == Integer.MAX_VALUE) {
-        break;
-      }
-
-      for (Qry q : this.args) {
-        if ((q.docIteratorHasMatch(null) && (q.docIteratorGetMatch() == minDocid))) {
-          continue;
-        }
-        matchDoc = false;
-        break;
-      }
-
-      // Advance the iterator
-      if (!matchDoc) {
+      // Found min docid
+      if (minDocid < Integer.MAX_VALUE) {
         for (Qry q : this.args) {
-          if (!q.docIteratorHasMatch(null) || !(q.docIteratorGetMatch() == minDocid)) {
+          if ((q.docIteratorHasMatch(null) && (q.docIteratorGetMatch() == minDocid))) {
             continue;
-          }
-          q.docIteratorAdvancePast(minDocid);
-        }
-        continue;
-      }
-
-      // Looking for matched location in the distance range
-      for (Qry q : this.args) {
-        QryIop query = (QryIop) q;
-        if (query == this.getArg(0)) {
-          first_q = query;
-          continue;
-        }
-        query.locIteratorAdvancePast(first_q.locIteratorGetMatch());
-      }
-      
-      // Get all in the range
-      while (flag) {
-        
-        min_location = Integer.MAX_VALUE;
-        min_qry = null;
-
-        // Get min location and query
-        for (Qry q : this.args) {
-          QryIop query = (QryIop) q;
-          if (!query.locIteratorHasMatch()) {
-            flag = false;
-            break;
-          }
-          min_location = Math.min(min_location, query.locIteratorGetMatch());
-          if (min_location == query.locIteratorGetMatch()) {
-            min_qry = query;
-          }
-        }
-
-        // Jump this round and break
-        if (!flag) {
-          continue;
-        }
-
-        // Check the positions
-        int first_location = first_q.locIteratorGetMatch();
-        for (int i = 0; i < this.args.size()-1; i++) {
-          int pos_2 = this.getArg(i+1).locIteratorGetMatch();
-          int pos_1 = this.getArg(i).locIteratorGetMatch();
-
-          if (pos_1 < pos_2 - distance || pos_1 > pos_2) {
-            min_qry.locIteratorAdvancePast(min_location);
-            flag = false;
+          } else {
+            matchDoc = false;
             break;
           }
         }
 
-        if (flag) {
-          positions.add(first_location);
+        if (matchDoc) {
+          // Looking for matched location in the distance range
           for (Qry q : this.args) {
             QryIop query = (QryIop) q;
-            query.locIteratorAdvance();
+            if (query == this.getArg(0)) {
+              first_q = query;
+              continue;
+            }
+            query.locIteratorAdvancePast(first_q.locIteratorGetMatch());
+          }
+          
+          // Get all in the range
+          while (flag) {        
+            min_location = Integer.MAX_VALUE;
+            min_qry = null;
+
+            // Get min location and query
+            for (Qry q : this.args) {
+              QryIop query = (QryIop) q;
+              if (!query.locIteratorHasMatch()) {
+                flag = false;
+                break;
+              }
+              min_location = Math.min(min_location, query.locIteratorGetMatch());
+              if (min_location == query.locIteratorGetMatch()) {
+                min_qry = query;
+              }
+            }
+
+            // Jump this round and break
+            if (flag) {
+              // Check one condition
+              int first_location = first_q.locIteratorGetMatch();
+              for (int i = 0; i < this.args.size()-1; i++) {
+                int pos_2 = this.getArg(i+1).locIteratorGetMatch();
+                int pos_1 = this.getArg(i).locIteratorGetMatch();
+
+                if (pos_2 - pos_1 > distance) {
+                  min_qry.locIteratorAdvancePast(min_location);
+                  flag = false;
+                  break;
+                }
+              }
+
+              if (flag) {
+                // Check another condition
+                first_location = first_q.locIteratorGetMatch();
+                for (int i = 0; i < this.args.size()-1; i++) {
+                  int pos_2 = this.getArg(i+1).locIteratorGetMatch();
+                  int pos_1 = this.getArg(i).locIteratorGetMatch();
+
+                  if (pos_1 > pos_2) {
+                    min_qry.locIteratorAdvancePast(min_location);
+                    flag = false;
+                    break;
+                  }
+                }
+
+                if (flag) {
+                  positions.add(first_location);
+                  for (Qry q : this.args) {
+                    QryIop query = (QryIop) q;
+                    query.locIteratorAdvance();
+                  }
+                  continue;
+                }
+                
+              }
+              min_qry.locIteratorAdvancePast(min_location);
+              flag = true;
+            }
+          }
+        } else {
+
+          for (Qry q : this.args) {
+            if (!q.docIteratorHasMatch(null) || !(q.docIteratorGetMatch() == minDocid)) {
+              continue;
+            } else {
+              q.docIteratorAdvancePast(minDocid);
+            }
           }
           continue;
         }
-        min_qry.locIteratorAdvancePast(min_location);
-        flag = true;
-      }
+        
+        // Add positions to inverted list
+        for (Qry q : this.args) {
+          QryIop query = (QryIop) q;
+          query.docIteratorAdvancePast(minDocid);
+        }
 
-      // Add positions to inverted list
-      for (Qry q : this.args) {
-        QryIop query = (QryIop) q;
-        query.docIteratorAdvancePast(minDocid);
-      }
+        // Advance doc iterators
+        if (positions.size() > 0) {
+          this.invertedList.appendPosting(minDocid, positions);
+        }
 
-      // Advance doc iterators
-      if (positions.size() > 0) {
-        this.invertedList.appendPosting(minDocid, positions);
+      } else {
+        break;
       }
-      
     }
   }
 
