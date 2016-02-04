@@ -5,9 +5,8 @@ import java.io.*;
 import java.util.*;
 
 /**
- *  The TERM operator for all retrieval models.  The TERM operator stores
- *  information about a query term, for example "apple" in the query
- *  "#AND (apple pie).  Although it may seem odd to use a query
+ *  The Near operator for all retrieval models.  The Near operator stores
+ *  information about a query term Although it may seem odd to use a query
  *  operator to store a term, doing so makes it easy to build
  *  structured queries with nested query operators.
  *
