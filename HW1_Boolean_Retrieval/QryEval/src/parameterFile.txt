@@ -1,4 +1,4 @@
 indexPath=../index
-retrievalAlgorithm=unRankedBoolean
-queryFilePath=../query_sets/queries.txt
-trecEvalOutputPath=queries_structured_unranked.teIn
+retrievalAlgorithm=RankedBoolean
+queryFilePath=../query_sets/queries_1.txt
+trecEvalOutputPath=queries_test_ranked.teIn
