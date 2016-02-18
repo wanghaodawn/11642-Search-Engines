@@ -29,7 +29,7 @@ public abstract class QrySop extends Qry {
    *  @return The document score.
    *  @throws IOException Error accessing the Lucene index
    */
-  public abstract double getDefaultScoreIndri(RetrievalModel r)
+  public abstract double getErrorScoreIndri(RetrievalModel r, int doc_id)
     throws IOException;
 
   /**

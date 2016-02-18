@@ -92,7 +92,7 @@ public class QrySopScore extends QrySop {
       // Get other variables
       double N = Idx.getNumDocs();
       QryIop query = this.getArg(0);
-      double tf = q.docIteratorGetMatchPosting().tf;
+      double tf = query.docIteratorGetMatchPosting().tf;
       double df = query.getDf();
       double doc_len_avg = Idx.getSumOfFieldLengths(query.getField());
       double doc_len = Idx.getFieldLength(query.getField(), this.docIteratorGetMatch());
@@ -102,10 +102,10 @@ public class QrySopScore extends QrySop {
         // Log will be minus
         rsj = 0.0;
       } else {
-        double rsj = Math.log(rsj);
+        rsj = Math.log(rsj);
       }
 
-      double tf_weight = 1.0 * tf / (tf + k1 * (1 - b + b / avg_doc_len * doc_len));
+      double tf_weight = 1.0 * tf / (tf + k1 * (1 - b + b / doc_len_avg * doc_len));
       double user_weight = 1.0;
 
       return rsj * tf_weight * user_weight;
@@ -128,13 +128,13 @@ public class QrySopScore extends QrySop {
 
       // Get other variables
       QryIop query = this.getArg(0);
-      double ctf = arg.getCtf();
+      double ctf = query.getCtf();
       double doc_len_avg = Idx.getSumOfFieldLengths(query.getField());
       double mle = ctf / doc_len_avg;
-      double tf = q.docIteratorGetMatchPosting().tf;
+      double tf = query.docIteratorGetMatchPosting().tf;
       double doc_len = Idx.getFieldLength(query.getField(), this.docIteratorGetMatch());
 
-      return (1.0 - lambda) * (tf + mu * mle) / (doc_len + mu) + mle * lambda;
+      return 1.0 * (1.0 - lambda) / (doc_len + mu) * (tf + mu * mle) + mle * lambda;
     }
     return 0.0;
   }
@@ -146,6 +146,7 @@ public class QrySopScore extends QrySop {
    *  @throws IOException Error accessing the Lucene index
    */
   public double getErrorScoreIndri(RetrievalModel r, int doc_id) throws IOException {
+    
     // Get input variables
     double mu = ((RetrievalModelIndri) r).mu;
     double lambda = ((RetrievalModelIndri) r).lambda;
@@ -154,10 +155,10 @@ public class QrySopScore extends QrySop {
     QryIop query = this.getArg(0);
     double doc_len_avg = Idx.getSumOfFieldLengths(query.getField());
     double doc_len = Idx.getFieldLength(query.getField(), doc_id);
+    double ctf = query.getCtf();
     double mle = ctf / doc_len_avg;
 
-    return (1.0 - lambda) * mu * mle / (doc_len + mu) + mle * lambda;
-
+    return 1.0 * (1.0 - lambda) * mle * mu / (doc_len + mu) + mle * lambda;
   }
 
 

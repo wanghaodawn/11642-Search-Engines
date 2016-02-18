@@ -154,11 +154,11 @@ public class QryEval {
       System.exit(-1);
     }
 
-    // Missing input arguments
-    if (map.size() != 4) {
-      System.out.println("Error: Missing Parameters in parameterFile.txt!!!");
-      System.exit(-1);
-    }
+    // // Missing input arguments
+    // if (map.size() != 4) {
+    //   System.out.println("Error: Missing Parameters in parameterFile.txt!!!");
+    //   System.exit(-1);
+    // }
 
     // Missing input arguments
     for (int i = 0; i < requiredParameters.length; i++) {
@@ -188,7 +188,7 @@ public class QryEval {
     } else if (modelString.equals("rankedboolean")) {
       model = new RetrievalModelRankedBoolean();
     } else if (modelString.equalsIgnoreCase("bm25")) {
-      double b = Double.parseDouble(parameters.get("BM25:b"));
+      double b  = Double.parseDouble(parameters.get("BM25:b"));
       double k1 = Double.parseDouble(parameters.get("BM25:k_1"));
       double k3 = Double.parseDouble(parameters.get("BM25:k_3"));
       // Judge the correctness of parameters of BM25

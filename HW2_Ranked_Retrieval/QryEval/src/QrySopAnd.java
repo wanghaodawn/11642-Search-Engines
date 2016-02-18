@@ -98,7 +98,7 @@ public class QrySopAnd extends QrySop {
         Qry q = this.args.get(i);
         double temp = 1.0;
         if(!q.docIteratorHasMatch(r) || docid != q.docIteratorGetMatch()){
-          double temp = ((QrySop) q).getScore(r);
+          temp = ((QrySop) q).getErrorScoreIndri(r, docid);
           if (temp == 0.0) {
             continue;
           }
@@ -110,4 +110,26 @@ public class QrySopAnd extends QrySop {
       return Math.pow(score, 1.0 / this.args.size());
     }
   }
+
+  /**
+   *  Get a score for the document when nothing matched in Indri Model
+   *  @param r The retrieval model that determines how scores are calculated.
+   *  @return The document score.
+   *  @throws IOException Error accessing the Lucene index
+   */
+  public double getErrorScoreIndri(RetrievalModel r, int doc_id) throws IOException {
+    
+    double score = 1.0;
+    for (int i = 0; i < this.args.size(); i++) {
+      Qry query = this.args.get(i);
+      double temp = ((QrySop) query).getErrorScoreIndri(r, doc_id);
+      if (temp == 0.0) {
+        continue;
+      }
+      score *= temp;
+    }
+    return Math.pow(score, 1.0 / this.args.size());
+  }
+
+
 }
