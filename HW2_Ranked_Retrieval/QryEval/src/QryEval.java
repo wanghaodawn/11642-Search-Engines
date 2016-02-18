@@ -187,9 +187,32 @@ public class QryEval {
       model = new RetrievalModelUnrankedBoolean();
     } else if (modelString.equals("rankedboolean")) {
       model = new RetrievalModelRankedBoolean();
+    } else if (modelString.equalsIgnoreCase("bm25")) {
+      double b = Double.parseDouble(parameters.get("BM25:b"));
+      double k1 = Double.parseDouble(parameters.get("BM25:k_1"));
+      double k3 = Double.parseDouble(parameters.get("BM25:k_3"));
+      // Judge the correctness of parameters of BM25
+      if (b < 0.0 || b > 1.0) {
+        throw new IllegalArgumentException ("Error: Incorrect value of b in BM25!");
+      } else if (k1 < 0.0) {
+        throw new IllegalArgumentException ("Error: Incorrect value of k1 in BM25!");
+      } else if (k3 < 0.0) {
+        throw new IllegalArgumentException ("Error: Incorrect value of k3 in BM25!");
+      }
+      model = new RetrievalModelBM25(b, k1, k3);
+    } else if (modelString.equalsIgnoreCase("indri")) {
+      double mu = Double.parseDouble(parameters.get("Indri:mu"));
+      double lambda = Double.parseDouble(parameters.get("Indri:lambda"));
+      // Judge the correctness of parameters of Indri
+      if (mu < 0.0) {
+        throw new IllegalArgumentException ("Error: Incorrect value of mu in Indri!");
+      } else if (lambda < 0.0 || lambda > 1.0) {
+        throw new IllegalArgumentException ("Error: Incorrect value of lambda in Indri!");
+      }
+      model = new RetrievalModelIndri(mu, lambda);
     } else {
-      throw new IllegalArgumentException
-        ("Unknown retrieval model " + parameters.get("retrievalAlgorithm"));
+    throw new IllegalArgumentException
+      ("Unknown retrieval model " + parameters.get("retrievalAlgorithm"));
     }
 
     return model;
@@ -319,10 +342,12 @@ public class QryEval {
         currentOp = new QryIopNear(dis);
         currentOp.setDisplayName(token);
         opStack.push(currentOp);
+      } else if (token.equalsIgnoreCase("#sum")) {
+        currentOp = new QrySopSum();
+        currentOp.setDisplayName(token);
+        opStack.push(currentOp);
       } else {
-
         //  Split the token into a term and a field.
-
         int delimiter = token.indexOf('.');
         String field = null;
         String term = null;
