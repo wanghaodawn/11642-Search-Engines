@@ -82,12 +82,31 @@ public class QrySopScore extends QrySop {
    *  @throws IOException Error accessing the Lucene index
    */
   private double getScoreBM25(RetrievalModel r) throws IOException {
-    if (q.docIteratorHasMatch(r)) {
-      double b  = ((RetrievalModelBM25) r).b;
-      double k1 = ((RetrievalModelBM25) r).k1;
-      double k3 = ((RetrievalModelBM25) r).k3;
-    } 
-    return 0.0;
+    // Get constant variables
+    double b  = ((RetrievalModelBM25) r).b;
+    double k1 = ((RetrievalModelBM25) r).k1;
+    double k3 = ((RetrievalModelBM25) r).k3;
+
+    // Get variables
+    double N = Idx.getNumDocs();
+    QryIop query = this.getArg(0);
+    double tf = q.docIteratorGetMatchPosting().tf;
+    double df = query.getDf();
+    double doc_len_avg = Idx.getSumOfFieldLengths(query.getField());
+    double doc_len = Idx.getFieldLength(query.getField(), this.docIteratorGetMatch());
+
+    double rsj = 1.0 * (N - df + 0.5) / (df + 0.5);
+    if (rsj < 1.0) {
+      // Log will be minus
+      rsj = 0.0;
+    } else {
+      double rsj = Math.log(rsj);
+    }
+
+    double tf_weight = 1.0 * tf / (tf + k1 * (1 - b + b / avg_doc_len * doc_len));
+    double user_weight = 1.0;
+
+    return rsj * tf_weight * user_weight;
   }
 
   /**
