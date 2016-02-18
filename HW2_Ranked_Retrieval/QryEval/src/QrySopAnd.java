@@ -83,7 +83,7 @@ public class QrySopAnd extends QrySop {
   }
 
   /**
-   *  getScore for the RankedBoolean retrieval model.
+   *  getScore for the Indri retrieval model.
    *  @param r The retrieval model that determines how scores are calculated.
    *  @return The document score.
    *  @throws IOException Error accessing the Lucene index

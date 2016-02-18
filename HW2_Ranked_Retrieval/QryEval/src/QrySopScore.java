@@ -37,6 +37,10 @@ public class QrySopScore extends QrySop {
       return this.getScoreUnrankedBoolean(r);
     } else if (r instanceof RetrievalModelRankedBoolean) {
       return this.getScoreRankedBoolean(r);
+    } else if (r instanceof RetrievalModelIndri) {
+      return this.getScoreIndri(r);
+    } else if (r instanceof RetrievalModelBM25) {
+      return this.getScoreBM25(r);
     } else {
       throw new IllegalArgumentException
         (r.getClass().getName() + " doesn't support the SCORE operator.");
@@ -69,6 +73,31 @@ public class QrySopScore extends QrySop {
     } else {
       return this.getArg(0).docIteratorGetMatchPosting().tf;
     }
+  }
+
+  /**
+   *  getScore for the BM25 retrieval model.
+   *  @param r The retrieval model that determines how scores are calculated.
+   *  @return The document score.
+   *  @throws IOException Error accessing the Lucene index
+   */
+  private double getScoreBM25(RetrievalModel r) throws IOException {
+    if (q.docIteratorHasMatch(r)) {
+      double b  = ((RetrievalModelBM25) r).b;
+      double k1 = ((RetrievalModelBM25) r).k1;
+      double k3 = ((RetrievalModelBM25) r).k3;
+    } 
+    return 0.0;
+  }
+
+  /**
+   *  getScore for the Indri retrieval model.
+   *  @param r The retrieval model that determines how scores are calculated.
+   *  @return The document score.
+   *  @throws IOException Error accessing the Lucene index
+   */
+  private double getScoreIndri(RetrievalModel r) throws IOException {
+    return 0.0;
   }
 
   /**
