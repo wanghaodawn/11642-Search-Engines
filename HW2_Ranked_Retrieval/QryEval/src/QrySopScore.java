@@ -82,31 +82,35 @@ public class QrySopScore extends QrySop {
    *  @throws IOException Error accessing the Lucene index
    */
   private double getScoreBM25(RetrievalModel r) throws IOException {
-    // Get constant variables
-    double b  = ((RetrievalModelBM25) r).b;
-    double k1 = ((RetrievalModelBM25) r).k1;
-    double k3 = ((RetrievalModelBM25) r).k3;
+    if (this.docIteratorHasMatchCache()) {
 
-    // Get variables
-    double N = Idx.getNumDocs();
-    QryIop query = this.getArg(0);
-    double tf = q.docIteratorGetMatchPosting().tf;
-    double df = query.getDf();
-    double doc_len_avg = Idx.getSumOfFieldLengths(query.getField());
-    double doc_len = Idx.getFieldLength(query.getField(), this.docIteratorGetMatch());
+      // Get input variables
+      double b  = ((RetrievalModelBM25) r).b;
+      double k1 = ((RetrievalModelBM25) r).k1;
+      double k3 = ((RetrievalModelBM25) r).k3;
 
-    double rsj = 1.0 * (N - df + 0.5) / (df + 0.5);
-    if (rsj < 1.0) {
-      // Log will be minus
-      rsj = 0.0;
-    } else {
-      double rsj = Math.log(rsj);
+      // Get other variables
+      double N = Idx.getNumDocs();
+      QryIop query = this.getArg(0);
+      double tf = q.docIteratorGetMatchPosting().tf;
+      double df = query.getDf();
+      double doc_len_avg = Idx.getSumOfFieldLengths(query.getField());
+      double doc_len = Idx.getFieldLength(query.getField(), this.docIteratorGetMatch());
+
+      double rsj = 1.0 * (N - df + 0.5) / (df + 0.5);
+      if (rsj < 1.0) {
+        // Log will be minus
+        rsj = 0.0;
+      } else {
+        double rsj = Math.log(rsj);
+      }
+
+      double tf_weight = 1.0 * tf / (tf + k1 * (1 - b + b / avg_doc_len * doc_len));
+      double user_weight = 1.0;
+
+      return rsj * tf_weight * user_weight;
     }
-
-    double tf_weight = 1.0 * tf / (tf + k1 * (1 - b + b / avg_doc_len * doc_len));
-    double user_weight = 1.0;
-
-    return rsj * tf_weight * user_weight;
+    return 0.0;
   }
 
   /**
@@ -116,8 +120,46 @@ public class QrySopScore extends QrySop {
    *  @throws IOException Error accessing the Lucene index
    */
   private double getScoreIndri(RetrievalModel r) throws IOException {
+    if (this.docIteratorHasMatchCache()) {
+
+      // Get input variables
+      double mu = ((RetrievalModelIndri) r).mu;
+      double lambda = ((RetrievalModelIndri) r).lambda;
+
+      // Get other variables
+      QryIop query = this.getArg(0);
+      double ctf = arg.getCtf();
+      double doc_len_avg = Idx.getSumOfFieldLengths(query.getField());
+      double mle = ctf / doc_len_avg;
+      double tf = q.docIteratorGetMatchPosting().tf;
+      double doc_len = Idx.getFieldLength(query.getField(), this.docIteratorGetMatch());
+
+      return (1.0 - lambda) * (tf + mu * mle) / (doc_len + mu) + mle * lambda;
+    }
     return 0.0;
   }
+
+  /**
+   *  Get a score for the document when nothing matched in Indri Model
+   *  @param r The retrieval model that determines how scores are calculated.
+   *  @return The document score.
+   *  @throws IOException Error accessing the Lucene index
+   */
+  public double getErrorScoreIndri(RetrievalModel r, int doc_id) throws IOException {
+    // Get input variables
+    double mu = ((RetrievalModelIndri) r).mu;
+    double lambda = ((RetrievalModelIndri) r).lambda;
+
+    // Get other variables
+    QryIop query = this.getArg(0);
+    double doc_len_avg = Idx.getSumOfFieldLengths(query.getField());
+    double doc_len = Idx.getFieldLength(query.getField(), doc_id);
+    double mle = ctf / doc_len_avg;
+
+    return (1.0 - lambda) * mu * mle / (doc_len + mu) + mle * lambda;
+
+  }
+
 
   /**
    *  Initialize the query operator (and its arguments), including any
@@ -129,7 +171,7 @@ public class QrySopScore extends QrySop {
    */
   public void initialize (RetrievalModel r) throws IOException {
 
-    Qry q = this.args.get (0);
+    Qry q = this.args.get(0);
     q.initialize (r);
   }
 

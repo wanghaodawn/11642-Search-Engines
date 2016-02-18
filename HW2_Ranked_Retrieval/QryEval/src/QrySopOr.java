@@ -75,4 +75,14 @@ public class QrySopOr extends QrySop {
     }
   }
 
+  /**
+   *  Get a score for the document when nothing matched in Indri Model
+   *  @param r The retrieval model that determines how scores are calculated.
+   *  @return The document score.
+   *  @throws IOException Error accessing the Lucene index
+   */
+  public double getErrorScoreIndri(RetrievalModel r, int doc_id) throws IOException {
+    return 0.0;
+  }
+
 }
