@@ -3,4 +3,6 @@
 *.doc
 *.docx
 *.teIn
+*.jar
+HW2_Ranked_Retrieval/QryEval/index/
 HW1_Boolean_Retrieval/QryEval/index/
