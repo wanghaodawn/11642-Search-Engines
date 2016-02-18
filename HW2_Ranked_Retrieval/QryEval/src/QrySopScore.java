@@ -11,14 +11,16 @@ import java.lang.IllegalArgumentException;
 public class QrySopScore extends QrySop {
 
   // Global Variables
-  private double b;
-  private double k1;
-  private double k3;
+  // Parameters for BM25
+  private double b  = -1.0;
+  private double k1 = -1.0;
+  private double k3 = -1.0;
 
-  private double mu;
-  private double lambda;
-  private String field;
+  // Parameters for Indri
+  private double mu = -1.0;
+  private double lambda = 1.0;
 
+  // Parameters that needn't be computed for multiple times
   private double df;
   private double ctf;
   private double mle;
@@ -26,6 +28,7 @@ public class QrySopScore extends QrySop {
   private double doc_count;
   private double doc_len_all;
   private double doc_len_avg;
+  private String field;
 
   /**
    *  Document-independent values that should be determined just once.
@@ -99,14 +102,19 @@ public class QrySopScore extends QrySop {
    *  @throws IOException Error accessing the Lucene index
    */
   private double getScoreBM25 (RetrievalModel r) throws IOException {
+
     if (this.docIteratorHasMatchCache()) {
 
-      b  = ((RetrievalModelBM25) r).b;
-      k1 = ((RetrievalModelBM25) r).k1;
-      k3 = ((RetrievalModelBM25) r).k3;
+      // Get input parameters
+      if (b == -1.0 || k1 == -1.0 || k3 == -1.0) {
+        b  = ((RetrievalModelBM25) r).b;
+        k1 = ((RetrievalModelBM25) r).k1;
+        k3 = ((RetrievalModelBM25) r).k3;
+      }
 
+      int doc_id = this.docIteratorGetMatch();
+      double doc_len = Idx.getFieldLength(field, doc_id);
       double tf = this.getArg(0).docIteratorGetMatchPosting().tf;
-      double doc_len = Idx.getFieldLength(field, this.docIteratorGetMatch());
 
       double rsj = 1.0 * (N - df + 0.5) / (df + 0.5);
       if (rsj < 1.0) {
@@ -130,14 +138,18 @@ public class QrySopScore extends QrySop {
    *  @throws IOException Error accessing the Lucene index
    */
   private double getScoreIndri (RetrievalModel r) throws IOException {
+
     if (this.docIteratorHasMatchCache()) {
 
-      // Get input variables
-      mu = ((RetrievalModelIndri) r).mu;
-      lambda = ((RetrievalModelIndri) r).lambda;
+      // Get input parameters
+      if (mu == -1.0 || lambda == -1.0) {
+        mu = ((RetrievalModelIndri) r).mu;
+        lambda = ((RetrievalModelIndri) r).lambda;
+      }
 
+      int doc_id = this.docIteratorGetMatch();
+      double doc_len = Idx.getFieldLength(field, doc_id);
       double tf = this.getArg(0).docIteratorGetMatchPosting().tf;
-      double doc_len = Idx.getFieldLength(field, this.docIteratorGetMatch());
 
       return 1.0 * (1.0 - lambda) * (tf + mu * mle) / (doc_len + mu) + mle * lambda;
     }
@@ -152,8 +164,11 @@ public class QrySopScore extends QrySop {
    */
   public double getErrorScoreIndri (RetrievalModel r, int doc_id) throws IOException {
 
-    mu = ((RetrievalModelIndri) r).mu;
-    lambda = ((RetrievalModelIndri) r).lambda;
+    // Get input parameters
+    if (mu == -1.0 || lambda == -1.0) {
+      mu = ((RetrievalModelIndri) r).mu;
+      lambda = ((RetrievalModelIndri) r).lambda;
+    }
 
     double doc_len = Idx.getFieldLength(field, doc_id);
 
@@ -185,5 +200,4 @@ public class QrySopScore extends QrySop {
     doc_count = 1.0 + Idx.getDocCount(field);
     doc_len_avg = doc_len_all / doc_count;
   }
-
 }
