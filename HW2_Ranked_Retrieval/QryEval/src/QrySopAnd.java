@@ -89,6 +89,7 @@ public class QrySopAnd extends QrySop {
    *  @throws IOException Error accessing the Lucene index
    */
   private double getScoreIndri(RetrievalModel r) throws IOException {
+    
     if (! this.docIteratorHasMatchCache()) {
       return 0.0;
     } else {
@@ -130,6 +131,4 @@ public class QrySopAnd extends QrySop {
     }
     return Math.pow(score, 1.0 / this.args.size());
   }
-
-
 }

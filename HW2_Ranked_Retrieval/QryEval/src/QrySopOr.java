@@ -84,5 +84,4 @@ public class QrySopOr extends QrySop {
   public double getErrorScoreIndri(RetrievalModel r, int doc_id) throws IOException {
     return 0.0;
   }
-
 }
