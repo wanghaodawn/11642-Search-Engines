@@ -15,7 +15,13 @@ public class QrySopAnd extends QrySop {
    *  @return True if the query matches, otherwise false.
    */
   public boolean docIteratorHasMatch (RetrievalModel r) {
-    return this.docIteratorHasMatchAll(r);
+    if (r instanceof RetrievalModelUnrankedBoolean) {
+      return this.docIteratorHasMatchAll(r);
+    } else if (r instanceof RetrievalModelRankedBoolean) {
+      return this.docIteratorHasMatchAll(r);
+    } else {
+      return this.docIteratorHasMatchMin(r);
+    }
   }
 
   /**
@@ -30,6 +36,8 @@ public class QrySopAnd extends QrySop {
       return this.getScoreUnrankedBoolean(r);
     } else if (r instanceof RetrievalModelRankedBoolean) {
       return this.getScoreRankedBoolean(r);
+    } else if (r instanceof RetrievalModelIndri) {
+      return getScoreIndri(r);
     } else {
       throw new IllegalArgumentException
         (r.getClass().getName() + " doesn't support the AND operator.");
@@ -72,6 +80,16 @@ public class QrySopAnd extends QrySop {
       }
       return min_score;
     }
+  }
+
+  /**
+   *  getScore for the RankedBoolean retrieval model.
+   *  @param r The retrieval model that determines how scores are calculated.
+   *  @return The document score.
+   *  @throws IOException Error accessing the Lucene index
+   */
+  private double getScoreIndri(RetrievalModel r) throws IOException {
+    return 0.0;
   }
 
 }
