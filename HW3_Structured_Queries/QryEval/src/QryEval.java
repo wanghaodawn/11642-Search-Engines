@@ -346,6 +346,11 @@ public class QryEval {
         currentOp = new QrySopSum();
         currentOp.setDisplayName(token);
         opStack.push(currentOp);
+      } else if (token.length() >= 9 && token.substring(0,8).equalsIgnoreCase("#window/")) {
+        int dis = Integer.parseInt(token.substring(8));
+        currentOp = new QryIopWindow(dis);
+        currentOp.setDisplayName(token);
+        opStack.push(currentOp);
       } else {
         //  Split the token into a term and a field.
         int delimiter = token.indexOf('.');
