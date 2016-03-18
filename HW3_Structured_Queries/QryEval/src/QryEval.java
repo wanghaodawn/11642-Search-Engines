@@ -351,6 +351,14 @@ public class QryEval {
         currentOp = new QryIopWindow(dis);
         currentOp.setDisplayName(token);
         opStack.push(currentOp);
+      } else if (token.equalsIgnoreCase("#wand")) {
+        currentOp = new QrySopWAnd();
+        currentOp.setDisplayName(token);
+        opStack.push(currentOp);
+      } else if (token.equalsIgnoreCase("#wsum")) {
+        currentOp = new QrySopWSum();
+        currentOp.setDisplayName(token);
+        opStack.push(currentOp);
       } else {
         //  Split the token into a term and a field.
         int delimiter = token.indexOf('.');
