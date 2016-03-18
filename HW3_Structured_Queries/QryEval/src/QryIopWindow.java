@@ -87,14 +87,14 @@ public class QryIopWindow extends QryIop {
 		        if (matchDoc) {
 
 		          	// Looking for matched location in the distance range
-		          	for (Qry q : this.args) {
-		            	QryIop query = (QryIop) q;
-		            	if (query == this.getArg(0)) {
-		              		first_q = query;
-		              		continue;
-		            	}
-		            	query.locIteratorAdvancePast(first_q.locIteratorGetMatch());
-		          	}
+					for (Qry q : this.args) {
+						QryIop query = (QryIop) q;
+						if (query == this.getArg(0)) {
+							first_q = query;
+							continue;
+						}
+						query.locIteratorAdvancePast(first_q.locIteratorGetMatch());
+					}
 		          
 					// Get all in the range
 					while (flag) {      
@@ -123,10 +123,11 @@ public class QryIopWindow extends QryIop {
 
 			              	for (int i = 0; i < this.args.size(); i++) {
 			              		int temp = this.getArg(i).locIteratorGetMatch();
-			                	if (temp > end) {
-			                		end = temp;
-			                	} else if (temp < begin) {
-			                		begin = temp;
+			                	
+			                	end = Math.max(end, temp);
+			                	begin = Math.min(begin, temp);
+			                	
+			                	if (begin == temp) {
 			                		min_qry = this.getArg(i);
 			                	}
 			              	}
