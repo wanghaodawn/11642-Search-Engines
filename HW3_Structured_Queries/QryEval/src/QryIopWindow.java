@@ -117,39 +117,27 @@ public class QryIopWindow extends QryIop {
 		            	if (flag) {
 			              	// Check one condition
 			              	int first_location = first_q.locIteratorGetMatch();
-			              	for (int i = 0; i < this.args.size()-1; i++) {
-			                	int pos_2 = this.getArg(i+1).locIteratorGetMatch();
-			                	int pos_1 = this.getArg(i).locIteratorGetMatch();
+			              	int begin = Integer.MAX_VALUE;
+			              	int end = Integer.MIN_VALUE;
 
-			                	if (pos_2 - pos_1 > distance) {
-			                  		min_qry.locIteratorAdvancePast(min_location);
+			              	for (int i = 0; i < this.args.size(); i++) {
+			              		int temp = this.getArg(i).locIteratorGetMatch();
+			                	begin = Math.min(begin, temp);
+			                	end = Math.max(end, temp);
+
+			                	if (end - begin > distance) {
 			                  		flag = false;
 			                  		break;
 			                	}
 			              	}
 
 			              	if (flag) {
-				                // Check another condition
-				                first_location = first_q.locIteratorGetMatch();
-				                for (int i = 0; i < this.args.size()-1; i++) {
-				                  	int pos_2 = this.getArg(i+1).locIteratorGetMatch();
-				                  	int pos_1 = this.getArg(i).locIteratorGetMatch();
-
-				                  	if (pos_1 > pos_2) {
-				                    	min_qry.locIteratorAdvancePast(min_location);
-				                    	flag = false;
-				                    	break;
-				                  	}
-				                }
-
-				                if (flag) {
-				                  	positions.add(first_location);
-				                  	for (Qry q : this.args) {
-				                    	QryIop query = (QryIop) q;
-				                    	query.locIteratorAdvance();
-				                  	}
-				                  	continue;
-				                }
+			                  	positions.add(first_location);
+			                  	for (Qry q : this.args) {
+			                    	QryIop query = (QryIop) q;
+			                    	query.locIteratorAdvance();
+			                  	}
+			                  	continue;
 			              	}
 		              		min_qry.locIteratorAdvancePast(min_location);
 		              		flag = true;
